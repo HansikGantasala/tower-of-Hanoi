@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tower of Hanoi - 3D Lord of the Rings Edition</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Cinzel', serif;
+            background-color: #000;
+            color: #d4af37;
+        }
+        
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .ui-container {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 10;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-top: 1px solid #d4af37;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            background: linear-gradient(to bottom, #5e4a14, #d4af37);
+            color: #000;
+            border: 2px solid #d4af37;
+            border-radius: 5px;
+            padding: 8px 15px;
+            font-family: 'Cinzel', serif;
+            font-weight: bold;
+            cursor: pointer;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.7);
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: linear-gradient(to bottom, #d4af37, #f2d675);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 1);
+        }
+        
+        button:disabled {
+            background: linear-gradient(to bottom, #555, #777);
+            border-color: #777;
+            color: #333;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        .status-container {
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #d4af37;
+        }
+        
+        .title {
+            position: absolute;
+            top: 5px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px #d4af37, 0 0 20px #d4af37;
+            z-index: 10;
+            padding: 5px;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 14px;
+            font-style: italic;
+            text-shadow: 0 0 5px #d4af37;
+            z-index: 10;
+        }
+        
+        .tower-labels {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 10px;
+        }
+        
+        .tower-label {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 5px 15px;
+            border-radius: 15px;
+            border: 1px solid #d4af37;
+            font-size: 16px;
+            text-shadow: 0 0 5px #d4af37;
+        }
+        
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        .loading-text {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #d4af37;
+        }
+        
+        .loading-bar-container {
+            width: 300px;
+            height: 20px;
+            background-color: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #d4af37;
+        }
+        
+        .loading-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #d4af37, #f2d675);
+            transition: width 0.5s;
+        }
+        
+        .instructions {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #d4af37;
+            max-width: 250px;
+            font-size: 12px;
+            z-index: 10;
+        }
+        
+        .instructions h3 {
+            margin-top: 0;
+            color: #d4af37;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .fallback-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+        
+        .fallback-content {
+            background-color: #111;
+            border: 2px solid #d4af37;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+        
+        .fallback-content h2 {
+            color: #d4af37;
+            text-align: center;
+            margin-top: 0;
+        }
+        
+        .fallback-content ol {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        
+        .fallback-content li {
+            margin-bottom: 10px;
+            color: #ccc;
+        }
+        
+        .close-fallback {
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .show-fallback {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10;
+        }
+        
+        .settings {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .setting-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 5px 15px;
+            border-radius: 5px;
+            border: 1px solid #d4af37;
+        }
+        
+        .setting-group label {
+            font-size: 14px;
+        }
+        
+        .setting-group input[type="number"] {
+            width: 50px;
+            background-color: #333;
+            border: 1px solid #d4af37;
+            color: #d4af37;
+            border-radius: 3px;
+            padding: 3px 5px;
+            font-family: 'Cinzel', serif;
+        }
+        
+        .setting-group input[type="range"] {
+            width: 100px;
+        }
+        
+        /* Add a custom ring animation */
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px #d4af37; }
+            50% { box-shadow: 0 0 20px #d4af37, 0 0 30px #d4af37; }
+            100% { box-shadow: 0 0 5px #d4af37; }
+        }
+        
+        /* Adjustments to prevent overlap with 3D scene */
+        .ui-container {
+            height: auto;
+            max-height: 135px;
+        }
+        
+        .tower-labels {
+            position: absolute;
+            top: 80px;
+            left: 0;
+            width: 100%;
+        }
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="loading" id="loading">
+        <div class="loading-text">
+            Preparing the Rings of Power...
+        </div>
+        <div class="loading-bar-container">
+            <div class="loading-bar" id="loading-bar"></div>
+        </div>
+    </div>
+    
+    <div id="canvas-container"></div>
+    
+    <h1 class="title">Tower of Hanoi</h1>
+    <h2 class="subtitle">One Ring to Move Them All</h2>
+    
+    <div class="instructions">
+        <h3>The Quest</h3>
+        <p>You must help move the Rings of Power from Minas Tirith to Mount Doom while obeying ancient laws:</p>
+        <ul>
+            <li>Only one ring can be moved at a time</li>
+            <li>A larger ring can never rest upon a smaller one</li>
+            <li>All rings must reach Mount Doom</li>
+        </ul>
+    </div>
+    
+    <div class="tower-labels">
+        <div class="tower-label">Minas Tirith</div>
+        <div class="tower-label">Isengard</div>
+        <div class="tower-label">Mount Doom</div>
+    </div>
+    
+    <div class="ui-container">
+        <div class="settings">
+            <div class="setting-group">
+                <label for="num-disks">Rings:</label>
+                <input type="number" id="num-disks" min="3" max="7" value="3">
+            </div>
+            <div class="setting-group">
+                <label for="speed-slider">Speed:</label>
+                <input type="range" id="speed-slider" min="500" max="2000" value="1000">
+                <span id="speed-value">1000ms</span>
+            </div>
+        </div>
+        
+        <div class="status-container">
+            <div id="status">The One Ring awaits your command...</div>
+        </div>
+        
+        <div class="controls">
+            <button id="reset-btn"><i class="fas fa-redo"></i> Reset</button>
+            <button id="step-btn"><i class="fas fa-step-forward"></i> Next Step</button>
+            <button id="solve-btn"><i class="fas fa-play"></i> Solve</button>
+            <button id="pause-btn" disabled><i class="fas fa-pause"></i> Pause</button>
+        </div>
+    </div>
+    
+    <button class="show-fallback" id="show-fallback">
+        <i class="fas fa-scroll"></i> Backup Plan
+    </button>
+    
+    <div class="fallback-container" id="fallback-container">
+        <div class="fallback-content">
+            <h2>Manual Presentation Backup Plan</h2>
+            <p>If the 3D animation fails during your presentation, follow these steps:</p>
+            
+            <ol>
+                <li><strong>Setup:</strong> Draw three towers on the board or use physical rods. Label them "Minas Tirith," "Isengard," and "Mount Doom."</li>
+                <li><strong>Props:</strong> Use rings/disks of different sizes (can be made from colored paper, with gold for the One Ring)</li>
+                <li><strong>Introduction:</strong> "Just as Frodo must take the One Ring to Mount Doom, we must move all rings following specific rules:"
+                    <ul>
+                        <li>Only one ring can be moved at a time</li>
+                        <li>A larger ring can never be placed on a smaller one</li>
+                        <li>We must move all rings from Minas Tirith to Mount Doom</li>
+                    </ul>
+                </li>
+                <li><strong>Solution demonstration:</strong> For 3 rings, follow this sequence:</li>
+                <li>Move smallest ring from Minas Tirith to Mount Doom</li>
+                <li>Move middle ring from Minas Tirith to Isengard</li>
+                <li>Move smallest ring from Mount Doom to Isengard (now stacked on middle ring)</li>
+                <li>Move largest ring from Minas Tirith to Mount Doom</li>
+                <li>Move smallest ring from Isengard to Minas Tirith</li>
+                <li>Move middle ring from Isengard to Mount Doom (stacked on largest)</li>
+                <li>Move smallest ring from Minas Tirith to Mount Doom (completing the tower)</li>
+                <li><strong>Pattern explanation:</strong> "This puzzle follows a pattern. For n rings, we need 2^n - 1 moves. With 3 rings, we needed 7 moves."</li>
+                <li><strong>Analogy to LOTR:</strong> "Like Frodo's journey, this puzzle requires careful planning and following specific rules to achieve success."</li>
+                <li><strong>Optional challenge:</strong> Demonstrate with 4 rings for more complexity (15 moves)</li>
+                <li><strong>Conclusion:</strong> "Just as the Ring was finally cast into Mount Doom, we've successfully completed our Tower of Hanoi puzzle!"</li>
+            </ol>
+            
+            <button class="close-fallback" id="close-fallback">Close</button>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Variables
+            let scene, camera, renderer, controls;
+            let towers = [];
+            let disks = [];
+            let moves = [];
+            let currentMoveIndex = 0;
+            let isAnimating = false;
+            let animationSpeed = parseInt(document.getElementById('speed-slider').value);
+            let timerId = null;
+            let numDisks = parseInt(document.getElementById('num-disks').value);
+            let isMoving = false;
+            let particleSystem, particleCount = 1000;
+            let particles = [];
+            let lavaTexture, stoneTexture, goldTexture, towerTexture;
+            let lavaLight, spotLight, ambientLight;
+            let fireParticles = [];
+            let smokingMountain;
+            
+            // Ring names and colors from LOTR
+            const ringNames = [
+                "The One Ring",
+                "Narya",
+                "Nenya",
+                "Vilya",
+                "Dwarf Ring",
+                "Man Ring",
+                "Witch-king Ring"
+            ];
+            
+            const diskColors = [
+                0xffd700, // Gold (One Ring)
+                0xff0000, // Red (Narya)
+                0xffffff, // White (Nenya)
+                0x0000ff, // Blue (Vilya)
+                0x8B4513, // Brown (Dwarf)
+                0x808080, // Silver (Man)
+                0x4b0082  // Purple (Witch-king)
+            ];
+            
+            // Loading management
+            let loadingManager = new THREE.LoadingManager();
+            let loadingProgress = 0;
+            
+            loadingManager.onProgress = function(url, itemsLoaded, itemsTotal) {
+                loadingProgress = itemsLoaded / itemsTotal * 100;
+                document.getElementById('loading-bar').style.width = loadingProgress + '%';
+            };
+            
+            loadingManager.onLoad = function() {
+                console.log("All assets loaded");
+                setTimeout(() => {
+                    document.getElementById('loading').style.display = 'none';
+                }, 500);
+            };
+            
+            // Event listeners for UI controls
+            document.getElementById('solve-btn').addEventListener('click', solve);
+            document.getElementById('step-btn').addEventListener('click', step);
+            document.getElementById('pause-btn').addEventListener('click', pause);
+            document.getElementById('reset-btn').addEventListener('click', reset);
+            document.getElementById('speed-slider').addEventListener('input', function() {
+                animationSpeed = parseInt(this.value);
+                document.getElementById('speed-value').textContent = animationSpeed + 'ms';
+            });
+            document.getElementById('num-disks').addEventListener('change', reset);
+            document.getElementById('show-fallback').addEventListener('click', function() {
+                document.getElementById('fallback-container').style.display = 'flex';
+            });
+            document.getElementById('close-fallback').addEventListener('click', function() {
+                document.getElementById('fallback-container').style.display = 'none';
+            });
+            
+            // Initialize scene
+            function init() {
+                // Create scene
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x000000);
+                
+                // Add fog for atmosphere
+                scene.fog = new THREE.FogExp2(0x000000, 0.008);
+                
+                // Create camera
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.set(0, 12, 20);
+                
+                // Create renderer
+                renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.shadowMap.enabled = true;
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                document.getElementById('canvas-container').appendChild(renderer.domElement);
+                
+                // Add ambient light
+                ambientLight = new THREE.AmbientLight(0x333333);
+                scene.add(ambientLight);
+                
+                // Add directional light (sun)
+                const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                dirLight.position.set(10, 20, 10);
+                dirLight.castShadow = true;
+                dirLight.shadow.camera.near = 0.1;
+                dirLight.shadow.camera.far = 500;
+                dirLight.shadow.camera.right = 15;
+                dirLight.shadow.camera.left = -15;
+                dirLight.shadow.camera.top = 15;
+                dirLight.shadow.camera.bottom = -15;
+                dirLight.shadow.mapSize.width = 1024;
+                dirLight.shadow.mapSize.height = 1024;
+                scene.add(dirLight);
+                
+                // Add spotlight for dramatic effect
+                spotLight = new THREE.SpotLight(0xffa500, 1);
+                spotLight.position.set(0, 30, 0);
+                spotLight.angle = Math.PI / 6;
+                spotLight.penumbra = 0.3;
+                spotLight.decay = 1;
+                spotLight.distance = 50;
+                spotLight.castShadow = true;
+                scene.add(spotLight);
+                
+                // Create ground
+                const groundGeometry = new THREE.PlaneGeometry(100, 100);
+                const groundMaterial = new THREE.MeshStandardMaterial({ 
+                    color: 0x333333,
+                    roughness: 0.8,
+                    metalness: 0.2
+                });
+                const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+                ground.rotation.x = -Math.PI / 2;
+                ground.position.y = -2;
+                ground.receiveShadow = true;
+                scene.add(ground);
+                
+                // Add base platform
+                const platformGeometry = new THREE.BoxGeometry(30, 1, 10);
+                const platformMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x555555,
+                    roughness: 0.7,
+                    metalness: 0.3
+                });
+                const platform = new THREE.Mesh(platformGeometry, platformMaterial);
+                platform.position.y = -1.5;
+                platform.receiveShadow = true;
+                platform.castShadow = true;
+                scene.add(platform);
+                
+                // Create towers
+                createTowers();
+                
+                // Create background environment
+                createEnvironment();
+                
+                // Create lava light effect for Mount Doom
+                lavaLight = new THREE.PointLight(0xff4500, 2, 20);
+                lavaLight.position.set(10, 0, 0);
+                scene.add(lavaLight);
+                
+                // Create particle systems for Mount Doom smoke
+                createParticles();
+                
+                // Initial game setup
+                reset();
+                
+                // Start animation loop
+                animate();
+                
+                // Handle window resize
+                window.addEventListener('resize', onWindowResize, false);
+            }
+            
+            // Create towers
+            function createTowers() {
+                const towerPositions = [-10, 0, 10]; // X positions for the three towers
+                
+                towers = [];
+                
+                for (let i = 0; i < 3; i++) {
+                    // Create the tower base
+                    const baseGeometry = new THREE.CylinderGeometry(2, 2, 0.5, 32);
+                    const baseMaterial = new THREE.MeshStandardMaterial({
+                        color: i === 2 ? 0x880000 : 0x444444, // Red base for Mount Doom
+                        roughness: 0.7,
+                        metalness: 0.3
+                    });
+                    const base = new THREE.Mesh(baseGeometry, baseMaterial);
+                    base.position.set(towerPositions[i], -1, 0);
+                    base.receiveShadow = true;
+                    base.castShadow = true;
+                    scene.add(base);
+                    
+                    // Create the tower rod
+                    const rodGeometry = new THREE.CylinderGeometry(0.5, 0.5, 10, 16);
+                    
+                    // Different materials for different towers
+                    let rodMaterial;
+                    if (i === 0) { // Minas Tirith - White tower
+                        rodMaterial = new THREE.MeshStandardMaterial({
+                            color: 0xcccccc,
+                            roughness: 0.5,
+                            metalness: 0.5
+                        });
+                    } else if (i === 1) { // Isengard - Dark tower
+                        rodMaterial = new THREE.MeshStandardMaterial({
+                            color: 0x222222,
+                            roughness: 0.3,
+                            metalness: 0.7
+                        });
+                    } else { // Mount Doom - Fiery tower
+                        rodMaterial = new THREE.MeshStandardMaterial({
+                            color: 0x883333,
+                            roughness: 0.6,
+                            metalness: 0.4,
+                            emissive: 0x441111
+                        });
+                    }
+                    
+                    const rod = new THREE.Mesh(rodGeometry, rodMaterial);
+                    rod.position.set(towerPositions[i], 4, 0);
+                    rod.castShadow = true;
+                    scene.add(rod);
+                    
+                    // Add special effects to Mount Doom
+                    if (i === 2) {
+                        // Add lava glow effect
+                        const glowGeometry = new THREE.SphereGeometry(1.8, 32, 32);
+                        const glowMaterial = new THREE.MeshBasicMaterial({
+                            color: 0xff4500,
+                            transparent: true,
+                            opacity: 0.3
+                        });
+                        const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+                        glow.position.set(towerPositions[i], -1, 0);
+                        scene.add(glow);
+                        
+                        // Create volcano cone
+                        smokingMountain = new THREE.Mesh(
+                            new THREE.ConeGeometry(3, 5, 32),
+                            new THREE.MeshStandardMaterial({
+                                color: 0x663333,
+                                roughness: 0.8,
+                                metalness: 0.2
+                            })
+                        );
+                        smokingMountain.position.set(towerPositions[i], -3.5, 0);
+                        smokingMountain.castShadow = true;
+                        scene.add(smokingMountain);
+                    }
+                    
+                    // Create a structure for Minas Tirith
+                    if (i === 0) {
+                        const towerGeometry = new THREE.CylinderGeometry(1.5, 2.5, 6, 6);
+                        const towerMaterial = new THREE.MeshStandardMaterial({
+                            color: 0xdddddd,
+                            roughness: 0.6,
+                            metalness: 0.3
+                        });
+                        const towerStructure = new THREE.Mesh(towerGeometry, towerMaterial);
+                        towerStructure.position.set(towerPositions[i], -4, 0);
+                        towerStructure.castShadow = true;
+                        scene.add(towerStructure);
+                    }
+                    
+                    // Create Orthanc tower for Isengard
+                    if (i === 1) {
+                        const isengardGeometry = new THREE.BoxGeometry(1.5, 7, 1.5);
+                        const isengardMaterial = new THREE.MeshStandardMaterial({
+                            color: 0x111111,
+                            roughness: 0.3,
+                            metalness: 0.8
+                        });
+                        const isengardTower = new THREE.Mesh(isengardGeometry, isengardMaterial);
+                        isengardTower.position.set(towerPositions[i], -4.5, 0);
+                        isengardTower.castShadow = true;
+                        scene.add(isengardTower);
+                    }
+                    
+                    // Store tower data
+                    towers.push({
+                        position: towerPositions[i],
+                        disks: [] // Will store disk objects on this tower
+                    });
+                }
+            }
+            
+            // Create environment elements
+            function createEnvironment() {
+                // Add mountains in the distance
+                for (let i = 0; i < 10; i++) {
+                    const mountainGeometry = new THREE.ConeGeometry(
+                        5 + Math.random() * 10, 
+                        10 + Math.random() * 15, 
+                        Math.floor(5 + Math.random() * 5)
+                    );
+                    const mountainMaterial = new THREE.MeshStandardMaterial({
+                        color: new THREE.Color(0x222222).offsetHSL(0, 0, Math.random() * 0.2),
+                        roughness: 0.9,
+                        metalness: 0.1
+                    });
+                    const mountain = new THREE.Mesh(mountainGeometry, mountainMaterial);
+                    
+                    // Position mountains in a semicircle behind the scene
+                    const angle = (i / 10) * Math.PI;
+                    const distance = 40 + Math.random() * 30;
+                    mountain.position.set(
+                        Math.cos(angle) * distance,
+                        -5 - Math.random() * 10,
+                        Math.sin(angle) * distance - 20
+                    );
+                    mountain.castShadow = true;
+                    scene.add(mountain);
+                }
+                
+                // Add a skybox/dome
+                const skyGeometry = new THREE.SphereGeometry(100, 32, 32);
+                const skyMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x000000,
+                    side: THREE.BackSide,
+                    fog: false
+                });
+                const sky = new THREE.Mesh(skyGeometry, skyMaterial);
+                scene.add(sky);
+                
+                // Add stars
+                const starGeometry = new THREE.BufferGeometry();
+                const starVertices = [];
+                
+                for (let i = 0; i < 1000; i++) {
+                    const x = Math.random() * 200 - 100;
+                    const y = Math.random() * 200 - 100;
+                    const z = Math.random() * 200 - 100;
+                    
+                    // Make sure stars are only in the sky (distance > 50)
+                    const distance = Math.sqrt(x*x + y*y + z*z);
+                    if (distance > 50 && distance < 100) {
+                        starVertices.push(x, y, z);
+                    }
+                }
+                
+                starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+                
+                const starMaterial = new THREE.PointsMaterial({
+                    color: 0xffffff,
+                    size: 0.2
+                });
+                
+                const stars = new THREE.Points(starGeometry, starMaterial);
+                scene.add(stars);
+            }
+            
+            // Create particle systems for Mount Doom
+            function createParticles() {
+                // Smoke particles
+                const smokeGeometry = new THREE.BufferGeometry();
+                const smokeVertices = [];
+                const smokeVelocities = [];
+                
+                for (let i = 0; i < 200; i++) {
+                    smokeVertices.push(
+                        10 + (Math.random() - 0.5) * 1,  // x (Mount Doom position)
+                        0,                                // y (start at the top)
+                        (Math.random() - 0.5) * 1         // z (slight variation)
+                    );
+                    
+                    smokeVelocities.push({
+                        x: (Math.random() - 0.5) * 0.01,
+                        y: 0.01 + Math.random() * 0.02,
+                        z: (Math.random() - 0.5) * 0.01,
+                        life: 0,
+                        maxLife: 100 + Math.random() * 100
+                    });
+                }
+                
+                smokeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(smokeVertices, 3));
+                
+                const smokeMaterial = new THREE.PointsMaterial({
+                    color: 0x888888,
+                    size: 0.3,
+                    transparent: true,
+                    opacity: 0.5
+                });
+                
+                const smoke = new THREE.Points(smokeGeometry, smokeMaterial);
+                scene.add(smoke);
+                
+                // Store for animation
+                particles.push({
+                    system: smoke,
+                    geometry: smokeGeometry,
+                    velocities: smokeVelocities
+                });
+                
+                // Fire particles
+                const fireGeometry = new THREE.BufferGeometry();
+                const fireVertices = [];
+                const fireVelocities = [];
+                
+                for (let i = 0; i < 100; i++) {
+                    fireVertices.push(
+                        10 + (Math.random() - 0.5) * 0.5,  // x (Mount Doom position)
+                        -1 + Math.random() * 0.5,           // y (start at the top of the mountain)
+                        (Math.random() - 0.5) * 0.5         // z (slight variation)
+                    );
+                    
+                    fireVelocities.push({
+                        x: (Math.random() - 0.5) * 0.02,
+                        y: 0.03 + Math.random() * 0.03,
+                        z: (Math.random() - 0.5) * 0.02,
+                        life: 0,
+                        maxLife: 20 + Math.random() * 30
+                    });
+                }
+                
+                fireGeometry.setAttribute('position', new THREE.Float32BufferAttribute(fireVertices, 3));
+                
+                const fireMaterial = new THREE.PointsMaterial({
+                    color: 0xff4500,
+                    size: 0.2,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                
+                const fire = new THREE.Points(fireGeometry, fireMaterial);
+                scene.add(fire);
+                
+                // Store for animation
+                fireParticles.push({
+                    system: fire,
+                    geometry: fireGeometry,
+                    velocities: fireVelocities
+                });
+            }
+            
+            // Create disks
+            function createDisks() {
+                // Clear existing disks
+                disks.forEach(disk => {
+                    scene.remove(disk.mesh);
+                });
+                disks = [];
+                
+                // Reset towers' disks arrays
+                towers.forEach(tower => {
+                    tower.disks = [];
+                });
+                
+                // Create new disks
+                for (let i = 0; i < numDisks; i++) {
+                    const radius = 1.8 - (i * 0.2);
+                    const height = 0.5;
+                    
+                    // Generate disk geometry
+                    const diskGeometry = new THREE.CylinderGeometry(radius, radius, height, 32);
+                    
+                    // Create disk material with LOTR-themed colors
+                    const diskMaterial = new THREE.MeshStandardMaterial({
+                        color: diskColors[i],
+                        roughness: 0.3,
+                        metalness: 0.8,
+                        emissive: i === 0 ? 0x884400 : 0x000000, // One Ring has glow
+                        emissiveIntensity: i === 0 ? 0.3 : 0
+                    });
+                    
+                    // Create mesh
+                    const diskMesh = new THREE.Mesh(diskGeometry, diskMaterial);
+                    diskMesh.castShadow = true;
+                    
+                    // Position the disk on the first tower
+                    const position = getDiskPosition(0, i);
+                    diskMesh.position.set(position.x, position.y, position.z);
+                    
+                    // Add to scene
+                    scene.add(diskMesh);
+                    
+                    // Store disk data
+                    const disk = {
+                        mesh: diskMesh,
+                        size: numDisks - i,
+                        name: ringNames[i]
+                    };
+                    
+                    disks.push(disk);
+                    towers[0].disks.push(disk);
+                }
+            }
+            
+            // Get position for a disk based on tower index and position in stack
+            function getDiskPosition(towerIndex, stackPosition) {
+                const x = towers[towerIndex].position;
+                const y = -1 + 0.5 * (stackPosition + 1); // -1 is the base, each disk is 0.5 high
+                const z = 0;
+                return { x, y, z };
+            }
+            
+            // Handle window resize
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+            
+            // Reset the game
+            function reset() {
+                // Clear any running animations
+                if (timerId) {
+                    clearTimeout(timerId);
+                    timerId = null;
+                }
+                
+                // Update number of disks
+                numDisks = parseInt(document.getElementById('num-disks').value);
+                
+                // Create new disks
+                createDisks();
+                
+                // Generate solution moves
+                moves = [];
+                generateMoves(numDisks, 0, 2, 1);
+                currentMoveIndex = 0;
+                
+                // Update UI
+                updateUI();
+                document.getElementById('solve-btn').disabled = false;
+                document.getElementById('step-btn').disabled = false;
+                document.getElementById('pause-btn').disabled = true;
+                
+                document.getElementById('status').textContent = `The One Ring awaits your command...`;
+            }
+            
+            // Generate Tower of Hanoi solution moves recursively
+            function generateMoves(n, source, target, auxiliary) {
+                if (n > 0) {
+                    // Move n-1 disks from source to auxiliary
+                    generateMoves(n - 1, source, auxiliary, target);
+                    
+                    // Move nth disk from source to target
+                    moves.push({ from: source, to: target });
+                    
+                    // Move n-1 disks from auxiliary to target
+                    generateMoves(n - 1, auxiliary, target, source);
+                }
+            }
+            
+            // Execute a move
+            function makeMove(from, to) {
+                if (isMoving) return;
+                
+                // Check if there are disks to move
+                if (towers[from].disks.length === 0) {
+                    console.error("No disks to move from this tower");
+                    return;
+                }
+                
+                // Get the top disk from the source tower
+                const disk = towers[from].disks.pop();
+                
+                // Check if move is valid (no larger disk on smaller)
+                if (towers[to].disks.length > 0) {
+                    const topDisk = towers[to].disks[towers[to].disks.length - 1];
+                    if (disk.size > topDisk.size) {
+                        console.error("Invalid move: larger disk on smaller");
+                        towers[from].disks.push(disk); // Put the disk back
+                        return;
+                    }
+                }
+                
+                isMoving = true;
+                
+                // Calculate positions
+                const startPos = disk.mesh.position.clone();
+                const midPos1 = startPos.clone();
+                midPos1.y = 8; // Lift above towers
+                
+                const endStackPos = towers[to].disks.length;
+                const endPos = getDiskPosition(to, endStackPos);
+                const midPos2 = new THREE.Vector3(endPos.x, 8, endPos.z);
+                
+                // Animate the move using TWEEN
+                const moveDuration = animationSpeed / 3;
+                
+                // First tween: Move up from source tower
+                new TWEEN.Tween(disk.mesh.position)
+                    .to({ x: midPos1.x, y: midPos1.y, z: midPos1.z }, moveDuration)
+                    .easing(TWEEN.Easing.Quadratic.Out)
+                    .onComplete(() => {
+                        // Second tween: Move horizontally to target tower
+                        new TWEEN.Tween(disk.mesh.position)
+                            .to({ x: midPos2.x, y: midPos2.y, z: midPos2.z }, moveDuration)
+                            .easing(TWEEN.Easing.Linear.None)
+                            .onComplete(() => {
+                                // Third tween: Move down to target tower
+                                new TWEEN.Tween(disk.mesh.position)
+                                    .to({ x: endPos.x, y: endPos.y, z: endPos.z }, moveDuration)
+                                    .easing(TWEEN.Easing.Quadratic.In)
+                                    .onComplete(() => {
+                                        // Add disk to target tower's array
+                                        towers[to].disks.push(disk);
+                                        isMoving = false;
+                                        
+                                        // Check if puzzle is completed
+                                        if (towers[2].disks.length === numDisks) {
+                                            celebrateCompletion();
+                                        } else if (isAnimating) {
+                                            // Continue with next move if auto-solving
+                                            timerId = setTimeout(step, animationSpeed / 3);
+                                        }
+                                    })
+                                    .start();
+                            })
+                            .start();
+                    })
+                    .start();
+                
+                // Update status
+                document.getElementById('status').textContent = `Moving ${disk.name} from ${getTowerName(from)} to ${getTowerName(to)}`;
+            }
+            
+            // Get tower name based on index
+            function getTowerName(index) {
+                const names = ["Minas Tirith", "Isengard", "Mount Doom"];
+                return names[index];
+            }
+            
+            // Execute one step of the solution
+            function step() {
+                if (currentMoveIndex >= moves.length) {
+                    return;
+                }
+                
+                const move = moves[currentMoveIndex];
+                makeMove(move.from, move.to);
+                currentMoveIndex++;
+                
+                updateUI();
+            }
+            
+            // Start auto-solving
+            function solve() {
+                if (isAnimating) return;
+                
+                isAnimating = true;
+                document.getElementById('solve-btn').disabled = true;
+                document.getElementById('step-btn').disabled = true;
+                document.getElementById('pause-btn').disabled = false;
+                
+                step();
+            }
+            
+            // Pause auto-solving
+            function pause() {
+                isAnimating = false;
+                document.getElementById('solve-btn').disabled = false;
+                document.getElementById('step-btn').disabled = false;
+                document.getElementById('pause-btn').disabled = true;
+                
+                if (timerId) {
+                    clearTimeout(timerId);
+                    timerId = null;
+                }
+            }
+            
+            // Update UI based on current state
+            function updateUI() {
+                const solveBtn = document.getElementById('solve-btn');
+                const stepBtn = document.getElementById('step-btn');
+                
+                if (currentMoveIndex >= moves.length) {
+                    solveBtn.disabled = true;
+                    stepBtn.disabled = true;
+                } else {
+                    if (!isAnimating) {
+                        solveBtn.disabled = false;
+                        stepBtn.disabled = false;
+                    }
+                }
+            }
+            
+            // Add celebration effects when puzzle is completed
+            function celebrateCompletion() {
+                document.getElementById('status').textContent = "The Rings have reached Mount Doom! Middle-earth is saved!";
+                
+                // Add sparkle particles around the completed tower
+                const sparkleGeometry = new THREE.BufferGeometry();
+                const sparkleVertices = [];
+                const sparkleVelocities = [];
+                
+                for (let i = 0; i < 300; i++) {
+                    sparkleVertices.push(
+                        towers[2].position + (Math.random() - 0.5) * 5,  // x
+                        Math.random() * 10,                              // y
+                        (Math.random() - 0.5) * 5                        // z
+                    );
+                    
+                    sparkleVelocities.push({
+                        x: (Math.random() - 0.5) * 0.05,
+                        y: (Math.random() - 0.5) * 0.05,
+                        z: (Math.random() - 0.5) * 0.05,
+                        life: 0,
+                        maxLife: 50 + Math.random() * 100
+                    });
+                }
+                
+                sparkleGeometry.setAttribute('position', new THREE.Float32BufferAttribute(sparkleVertices, 3));
+                
+                const sparkleMaterial = new THREE.PointsMaterial({
+                    color: 0xffd700,
+                    size: 0.2,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                
+                const sparkles = new THREE.Points(sparkleGeometry, sparkleMaterial);
+                scene.add(sparkles);
+                
+                // Store for animation
+                particles.push({
+                    system: sparkles,
+                    geometry: sparkleGeometry,
+                    velocities: sparkleVelocities,
+                    celebratory: true
+                });
+                
+                // Make the One Ring glow stronger
+                if (disks.length > 0 && towers[2].disks.length === numDisks) {
+                    const oneRing = towers[2].disks[towers[2].disks.length - 1].mesh.material;
+                    oneRing.emissiveIntensity = 1.0;
+                    
+                    // Animate the One Ring glowing
+                    const glowAnimation = new TWEEN.Tween({ intensity: 0.3 })
+                        .to({ intensity: 1.0 }, 1000)
+                        .easing(TWEEN.Easing.Quadratic.InOut)
+                        .onUpdate(function(obj) {
+                            oneRing.emissiveIntensity = obj.intensity;
+                        })
+                        .repeat(5)
+                        .yoyo(true)
+                        .start();
+                }
+                
+                // Dramatic camera movement
+                new TWEEN.Tween(camera.position)
+                    .to({ x: 15, y: 15, z: 15 }, 2000)
+                    .easing(TWEEN.Easing.Quadratic.InOut)
+                    .start();
+                
+                // Disable controls during celebration
+                document.getElementById('solve-btn').disabled = true;
+                document.getElementById('step-btn').disabled = true;
+                document.getElementById('pause-btn').disabled = true;
+            }
+            
+            // Update the particle systems
+            function updateParticles() {
+                // Update smoke particles
+                particles.forEach(particleData => {
+                    const positions = particleData.geometry.attributes.position.array;
+                    
+                    for (let i = 0; i < particleData.velocities.length; i++) {
+                        const velocity = particleData.velocities[i];
+                        const idx = i * 3;
+                        
+                        // Update particle position
+                        positions[idx] += velocity.x;
+                        positions[idx + 1] += velocity.y;
+                        positions[idx + 2] += velocity.z;
+                        
+                        // Update life
+                        velocity.life++;
+                        
+                        // Reset particle if it's beyond its lifespan
+                        if (velocity.life > velocity.maxLife) {
+                            if (particleData.celebratory) {
+                                // For celebration particles, just make them fade away
+                                positions[idx] = -1000; // Move far away
+                            } else {
+                                // Reset smoke particle
+                                positions[idx] = 10 + (Math.random() - 0.5) * 1;
+                                positions[idx + 1] = 0;
+                                positions[idx + 2] = (Math.random() - 0.5) * 1;
+                                velocity.life = 0;
+                                velocity.maxLife = 100 + Math.random() * 100;
+                            }
+                        }
+                    }
+                    
+                    particleData.geometry.attributes.position.needsUpdate = true;
+                });
+                
+                // Update fire particles
+                fireParticles.forEach(particleData => {
+                    const positions = particleData.geometry.attributes.position.array;
+                    
+                    for (let i = 0; i < particleData.velocities.length; i++) {
+                        const velocity = particleData.velocities[i];
+                        const idx = i * 3;
+                        
+                        // Update particle position
+                        positions[idx] += velocity.x;
+                        positions[idx + 1] += velocity.y;
+                        positions[idx + 2] += velocity.z;
+                        
+                        // Update life
+                        velocity.life++;
+                        
+                        // Reset particle if it's beyond its lifespan
+                        if (velocity.life > velocity.maxLife) {
+                            positions[idx] = 10 + (Math.random() - 0.5) * 0.5;
+                            positions[idx + 1] = -1 + Math.random() * 0.5;
+                            positions[idx + 2] = (Math.random() - 0.5) * 0.5;
+                            velocity.life = 0;
+                            velocity.maxLife = 20 + Math.random() * 30;
+                        }
+                    }
+                    
+                    particleData.geometry.attributes.position.needsUpdate = true;
+                });
+            }
+            
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                // Update particle systems
+                updateParticles();
+                
+                // Update tweens
+                TWEEN.update();
+                
+                // Make lava light flicker
+                if (lavaLight) {
+                    lavaLight.intensity = 1.5 + Math.random() * 0.5;
+                }
+                
+                // Point camera at the center of the scene
+                camera.lookAt(0, 3, 0);
+                
+                // Render scene
+                renderer.render(scene, camera);
+            }
+            
+            // Start the application
+            init();
+        });
+        document.getElementById('loading').style.display = 'none';
+
+    </script>
+</body>
+</html>
